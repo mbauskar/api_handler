@@ -26,7 +26,7 @@ app_version = "0.0.1"
 
 # application home page (will override Website Settings)
 # home_page = "login"
-api_name = "propshikari"
+# api_name = "ebuy-now"
 
 # website user home page (by Role)
 # role_home_page = {
