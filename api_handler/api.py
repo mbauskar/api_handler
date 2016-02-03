@@ -38,13 +38,20 @@ def handle(api_config):
 		return handler.handle()
 
 	elif (len(parts) <= 4 or len(parts) >= 5) and parts[2] == "resource":
-		version = parts[1]
+		version = parts[1] or ""
+		
+		frappe.local.form_dict.doctype = parts[3] or ""
+		frappe.local.form_dict.name = parts[4] if len(parts) == 5 else ""
+
 		if not is_valid_version(version): 
 			return report_error(417, "Invalid API Version")
 
-		method = '.'.join(map(str,[api_config.app_name, "versions", version, "rest_api"]))
+		method = '.'.join(map(str,[api_config.app_name, "versions", version.replace(".", "_"), "rest_api"]))
 		frappe.local.form_dict.cmd = method
-		return report_error(417, frappe.local.form_dict.cmd)
+
+		if not is_valid_min_max_filters():
+			return report_error(417, "Invalid Min or Max filter")
+		# return report_error(417, frappe.local.form_dict)
 		return handler.handle()
 
 	else:
@@ -61,4 +68,44 @@ def is_valid_version(version, api_config=None):
 	if version not in allowed_versions:
 		return False
 	else:
+		return True
+
+def is_valid_min_max_filters():
+	# validate min or max filters
+	keys = map(lambda key: key.lower(), frappe.local.form_dict.keys())
+
+	_filter = [key for key in keys if key in ["min", "max"]]
+
+	if len(_filter) == 1 and "min" in keys and frappe.local.form_dict.min:
+		key = "min"
+		field = json.loads(frappe.local.form_dict.min)
+	elif len(_filter) == 1 and "max" in keys and frappe.local.form_dict.max:
+		key = "max"
+		field = json.loads(frappe.local.form_dict.max)
+	else:
+		return True
+	
+	if isinstance(field, basestring):
+		return build_min_max_filter(key, field)
+	else:
+		return False
+
+def build_min_max_filter(_filter, field):
+	if not _filter and not field:
+		return False
+	else:
+		_field = "{_filter}({field}) as {field}".format(_filter=_filter, field=field)
+		api_fields = json.loads(frappe.local.form_dict.fields or "[]")
+		
+		if api_fields and isinstance(api_fields, list):
+			api_fields.append(_field)
+		elif api_fields and isinstance(api_fields, basestring):
+			api_fields = [api_fields, _field]
+		else:
+			api_fields = ["name", _field]
+	
+		# frappe.local.form_dict.fields = json.dumps(api_fields)
+		frappe.local.form_dict.pop(_filter)
+		frappe.local.form_dict["fields"] = '"{}"'.format(_field)
+
 		return True

@@ -27,4 +27,4 @@ class APIVersion(Document):
 		if not os.path.exists(module_path):
 			os.mkdir(module_path)
 			with open(os.path.join(module_path, "__init__.py"), "w") as f:
-				f.write(rest_api)
+				f.write("")

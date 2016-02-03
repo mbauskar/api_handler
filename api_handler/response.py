@@ -15,7 +15,7 @@ from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
 
-def report_error(status_code,message):
+def report_error(status_code, message):
 	frappe.response["code"] = status_code
 	frappe.response["message"] = message
 	response = build_response("json")
