@@ -24,6 +24,7 @@ def handle():
 		login_user()
 	elif cmd != 'login':
 		user = manage_user()
+
 		if user:
 			execute_cmd(cmd)
 
@@ -60,7 +61,7 @@ def execute_cmd(cmd, async=False):
 
 	else:
 		pass
-	
+
 	finally:
 		import time
 		ts = int(time.time())
@@ -94,7 +95,7 @@ def login_user():
 		frappe.response["timestamp"] = ts
 
 def manage_user():
-	if frappe.local.request.method=="POST" and frappe.form_dict.data:
+	if frappe.local.request.method in ["POST", "PUT", "DELETE"] and frappe.form_dict.data:
 		data = json.loads(frappe.form_dict.data)		
 		sid = data.get('sid')
 		user_id = data.get('user_id')

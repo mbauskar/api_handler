@@ -19,10 +19,11 @@ def handle(api_config):
 	"""
 	parts = frappe.request.path[1:].split("/",5)
 	method_name = version = api_name = method = None
-	# return report_error(1, len(parts) >= 5 and parts[2] == "resource")
+	app_name = api_config.app_name
+
 	if len(parts) <= 2:
 		if parts[1] == 'login':
-			frappe.local.form_dict.cmd = '.'.join(map(str,[parts[0],parts[1]]))
+			frappe.local.form_dict.cmd = '.'.join(map(str,[app_name,parts[1]]))
 			frappe.local.form_dict.op = "login"
 			return handler.handle()
 
@@ -32,9 +33,10 @@ def handle(api_config):
 			return report_error(417, "Invalid API Version")
 
 		method_name = parts[3]
-		method = '.'.join(map(str,[api_config.app_name, "versions", version, method_name]))
+		method = '.'.join(map(str,[app_name, "versions", version, method_name]))
 
 		frappe.local.form_dict.cmd = method
+
 		return handler.handle()
 
 	elif (len(parts) <= 4 or len(parts) >= 5) and parts[2] == "resource":
@@ -51,7 +53,7 @@ def handle(api_config):
 
 		if not is_valid_min_max_filters():
 			return report_error(417, "Invalid Min or Max filter")
-		# return report_error(417, frappe.local.form_dict)
+
 		return handler.handle()
 
 	else:
