@@ -33,7 +33,7 @@ def handle(api_config):
 			return report_error(417, "Invalid API Version")
 
 		method_name = parts[3]
-		method = '.'.join(map(str,[app_name, "versions", version, method_name]))
+		method = '.'.join(map(str,[app_name, "api.versions", version.replace(".", "_"), method_name]))
 
 		frappe.local.form_dict.cmd = method
 
@@ -48,7 +48,7 @@ def handle(api_config):
 		if not is_valid_version(version): 
 			return report_error(417, "Invalid API Version")
 
-		method = '.'.join(map(str,[api_config.app_name, "versions", version.replace(".", "_"), "rest_api"]))
+		method = '.'.join(map(str,[api_config.app_name, "api.versions", version.replace(".", "_"), "rest_api"]))
 		frappe.local.form_dict.cmd = method
 
 		if not is_valid_min_max_filters():

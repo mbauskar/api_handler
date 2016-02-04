@@ -41,6 +41,10 @@ class Redirect(Exception):
 class NoAllowed(Exception):
 	status_code = 403
 
+class NotImplementedException(Exception):
+	status_code = 501
+	message = "Not Yet Implemented"
+
 class DuplicateEntryError(NameError):pass
 class InvalidDataError(ValidationError): pass
 class UnknownDomainError(Exception): pass
