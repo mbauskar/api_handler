@@ -29,14 +29,13 @@ def handle(api_config):
 
 	elif len(parts) == 4 and parts[2] == "method":
 		version = parts[1]
-		if not is_valid_version(version): 
-			return report_error(417, "Invalid API Version")
+		if api_config and version not in api_config.allowed_versions:
+			return report_error(417, "Invalid API Version, please check api configurations")
 
 		method_name = parts[3]
 		method = '.'.join(map(str,[app_name, "api.versions", version.replace(".", "_"), method_name]))
 
 		frappe.local.form_dict.cmd = method
-
 		return handler.handle()
 
 	elif (len(parts) <= 4 or len(parts) >= 5) and parts[2] == "resource":
@@ -45,8 +44,8 @@ def handle(api_config):
 		frappe.local.form_dict.doctype = parts[3] or ""
 		frappe.local.form_dict.name = parts[4] if len(parts) == 5 else ""
 
-		if not is_valid_version(version): 
-			return report_error(417, "Invalid API Version")
+		if api_config and version not in api_config.allowed_versions:
+			return report_error(417, "Invalid API Version, please check api configurations")
 
 		method = '.'.join(map(str,[api_config.app_name, "api.versions", version.replace(".", "_"), "rest_api"]))
 		frappe.local.form_dict.cmd = method
@@ -61,16 +60,10 @@ def handle(api_config):
 		return report_error(417,"Invalid URL")
 
 def is_valid_version(version, api_config=None):
-	if api_config:
-		allowed_versions = allowed_versions.allowed_versions
-	else:
-		versons = frappe.db.get_values("Allowed API Version", {"parent": "API Configuration"}, "api_version")
-		allowed_versions = [v[0] for v in versons]
-
-	if version not in allowed_versions:
-		return False
-	else:
+	if api_config and version in api_config.allowed_versions:
 		return True
+	else:
+		return False	
 
 def is_valid_min_max_filters():
 	# validate min or max filters
