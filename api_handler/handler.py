@@ -41,6 +41,7 @@ def execute_cmd(cmd, async=False):
 				return report_error(403,"Not Allowed")		
 
 		else:
+			print cmd
 			if not method in frappe.whitelisted:
 				return report_error(403,"Not Allowed")
 
@@ -102,35 +103,29 @@ def login_user():
 	
 		
 def manage_user():
-	if frappe.form_dict.data:
-		data = json.loads(frappe.form_dict.data)		
+	method = frappe.local.request.method
+	sid = None
+
+	if method in ["POST", "PUT", "DELETE"] and frappe.form_dict.data:
+		data = json.loads(frappe.form_dict.data)
 		sid = data.get('sid')
-		user_id = data.get('user_id')
 
-		if not sid:
-			report_error(417,"sid not provided")
-			return False		
+	elif method == "GET" and frappe.form_dict:
+		sid = frappe.form_dict.get("sid")		
 
-		elif sid and not user_id:
-			report_error(417,"user_id not provided")
-			return False
-
-		elif sid and user_id:
-			#user = frappe.db.get_value("User",{"user_id":user_id},"name")
-			user = "aaa"
-			if not user:
-				report_error(417,"user_id not provided")
-				return False
-			else:
-				try:
-					frappe.form_dict["sid"] = sid 
-					loginmgr = frappe.auth.LoginManager()
-				except frappe.SessionStopped,e:
-					http_status_code = getattr(e, "http_status_code", 500)
-					frappe.response["code"] = http_status_code
-					return False
-		return True
 	else:
 		report_error(417,"Input not provided")
-		return False			
+		return False
 
+	if not sid:
+		report_error(417,"sid not provided")
+		return False		
+
+	try:
+		frappe.form_dict["sid"] = sid 
+		loginmgr = frappe.auth.LoginManager()
+	except frappe.SessionStopped,e:
+		http_status_code = getattr(e, "http_status_code", 500)
+		frappe.response["code"] = http_status_code
+		return False
+	return True
