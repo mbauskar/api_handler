@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 import handler
 from response import build_response,report_error
+from bewo.bewo.doctype.api_log.api_log import log_request, log_response
 
 def handle():
 	"""
@@ -18,13 +19,15 @@ def handle():
 	
 	"""
 	parts = frappe.request.path[1:].split("/",4)
-	method_name = version = api_name = method = None
+	method_name = version = api_name = method = response = None
+	
+	log_id = log_request(frappe.local.request, frappe.local.form_dict)
 
 	if len(parts) <= 2:
 		if parts[1] == 'login':
 			frappe.local.form_dict.cmd = '.'.join(map(str,[parts[0],"login"]))
 			frappe.local.form_dict.op = "login"
-			return handler.handle()
+			response = handler.handle()
 
 	else:
 		api_name = parts[0]
@@ -33,12 +36,20 @@ def handle():
 			method_name = parts[4]
 			method = '.'.join(map(str,[api_name,"api.versions",version,method_name]))
 			frappe.local.form_dict.cmd = method
-			return handler.handle()
+			response = handler.handle()
 		elif parts[3] == "resource":
 			resource = parts[4].split("/")[0]
 			method = '.'.join(map(str,[api_name,"api.versions",version,resource, "get"]))
 			frappe.local.form_dict.cmd = method
 			frappe.local.form_dict.resource = parts[4].split("/")[1:]
-			return handler.handle()
+			response = handler.handle()
 		else:
-			return report_error(417,"Invalid URL")
+			response = report_error(417,"Invalid URL")
+
+	# log response
+	data = json.loads(response.data)
+	data.update({ "log_id":log_id })
+	response.data = json.dumps(data)
+	log_response(log_id, response.data)
+	
+	return response

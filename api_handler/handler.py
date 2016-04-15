@@ -25,7 +25,7 @@ def handle():
 	elif cmd != 'login':
 		user = manage_user()
 		if user:
-			execute_cmd(cmd)	
+			execute_cmd(cmd)
 
 	return build_response("json")
 
@@ -60,7 +60,6 @@ def execute_cmd(cmd, async=False):
 		http_status_code = getattr(e, "status_code", 500)
 		message = getattr(e, "message", 500)
 		report_error(http_status_code,message)
-
 	else:
 		pass
 	
@@ -68,8 +67,6 @@ def execute_cmd(cmd, async=False):
 		import time
 		ts = int(time.time())
 		frappe.response["timestamp"] = ts
-	
-	
 
 def get_attr(cmd):
 	"""get method object from cmd"""
@@ -80,9 +77,6 @@ def get_attr(cmd):
 		method = globals()[cmd]
 	frappe.log("method:" + cmd)
 	return method
-
-	
-
 
 def login_user():
 	try: 
@@ -101,7 +95,6 @@ def login_user():
 		ts = int(time.time())
 		frappe.response["timestamp"] = ts
 	
-		
 def manage_user():
 	method = frappe.local.request.method
 	sid = None
